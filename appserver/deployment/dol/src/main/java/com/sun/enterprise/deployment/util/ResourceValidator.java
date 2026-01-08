@@ -1064,22 +1064,22 @@ public class ResourceValidator implements EventListener, ResourceValidatorVisito
      */
     private static class JNDINamespace {
 
-        private final Map<String, List<String>> componentNamespaces;
+        private final Map<String, Set<String>> componentNamespaces;
 
-        private final Map<String, List<String>> moduleNamespaces;
+        private final Map<String, Set<String>> moduleNamespaces;
 
-        private final List<String> appNamespace;
+        private final Set<String> appNamespace;
 
-        private final List<String> globalNameSpace;
+        private final Set<String> globalNameSpace;
 
-        private final List<String> nonPortableJndiNames;
+        private final Set<String> nonPortableJndiNames;
 
         private JNDINamespace() {
             componentNamespaces = new HashMap<>();
             moduleNamespaces = new HashMap<>();
-            appNamespace = new ArrayList<>();
-            globalNameSpace = new ArrayList<>();
-            nonPortableJndiNames = new ArrayList<>();
+            appNamespace = new HashSet<>();
+            globalNameSpace = new HashSet<>();
+            nonPortableJndiNames = new HashSet<>();
         }
 
         /**
@@ -1098,9 +1098,9 @@ public class ResourceValidator implements EventListener, ResourceValidatorVisito
             for (Map.Entry<String, List<String>> entry : resources.entrySet()) {
                 if (!entry.getKey().equals(appName)) {
                     String moduleName = getActualModuleName(entry.getKey());
-                    List<String> jndiNames = moduleNamespaces.get(moduleName);
+                    Set<String> jndiNames = moduleNamespaces.get(moduleName);
                     if (jndiNames == null) {
-                        jndiNames = new ArrayList<>();
+                        jndiNames = new HashSet<>();
                         jndiNames.addAll(entry.getValue());
                         moduleNamespaces.put(moduleName, jndiNames);
                     } else {
@@ -1117,9 +1117,9 @@ public class ResourceValidator implements EventListener, ResourceValidatorVisito
         public void store(String jndiName, JndiNameEnvironment env) {
             if (jndiName.startsWith(ResourceConstants.JAVA_COMP_SCOPE_PREFIX)) {
                 String componentId = DOLUtils.getComponentEnvId(env);
-                List<String> jndiNames = componentNamespaces.get(componentId);
+                Set<String> jndiNames = componentNamespaces.get(componentId);
                 if (jndiNames == null) {
-                    jndiNames = new ArrayList<>();
+                    jndiNames = new HashSet<>();
                     jndiNames.add(jndiName);
                     componentNamespaces.put(componentId, jndiNames);
                 } else {
@@ -1127,9 +1127,9 @@ public class ResourceValidator implements EventListener, ResourceValidatorVisito
                 }
             } else if (jndiName.startsWith(ResourceConstants.JAVA_MODULE_SCOPE_PREFIX)) {
                 String moduleName = getActualModuleName(DOLUtils.getModuleName(env));
-                List<String> jndiNames = moduleNamespaces.get(moduleName);
+                Set<String> jndiNames = moduleNamespaces.get(moduleName);
                 if (jndiNames == null) {
-                    jndiNames = new ArrayList<>();
+                    jndiNames = new HashSet<>();
                     jndiNames.add(jndiName);
                     moduleNamespaces.put(moduleName, jndiNames);
                 } else {
@@ -1157,11 +1157,11 @@ public class ResourceValidator implements EventListener, ResourceValidatorVisito
 
             if (jndiName.startsWith(ResourceConstants.JAVA_COMP_SCOPE_PREFIX)) {
                 String componentId = DOLUtils.getComponentEnvId(env);
-                List jndiNames = componentNamespaces.get(componentId);
+                Set<String> jndiNames = componentNamespaces.get(componentId);
                 return jndiNames != null && jndiNames.contains(jndiName);
             } else if (jndiName.startsWith(ResourceConstants.JAVA_MODULE_SCOPE_PREFIX)) {
                 String moduleName = getActualModuleName(DOLUtils.getModuleName(env));
-                List jndiNames = moduleNamespaces.get(moduleName);
+                Set<String> jndiNames = moduleNamespaces.get(moduleName);
                 return jndiNames != null && jndiNames.contains(jndiName);
             } else if (jndiName.startsWith(ResourceConstants.JAVA_APP_SCOPE_PREFIX)) {
                 return appNamespace.contains(jndiName);
